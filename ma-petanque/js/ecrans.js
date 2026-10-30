@@ -842,7 +842,20 @@ MP.Ecrans = (function () {
     document.querySelectorAll('.onglets button').forEach(function (b) {
       if (b.getAttribute('data-onglet') === onglet) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
+    majJouerVite();
     majEntete();
+  }
+
+  // Raccourci « Jouer » dans la barre du haut : ta boule, et un appui lance une boule.
+  function majJouerVite() {
+    var b = document.getElementById('jouer-vite');
+    var bE = MP.bouleEquipee(d()), taille = 42, ratio = Math.min(window.devicePixelRatio || 1, 3);
+    var c = h('canvas', { width: Math.round(taille * ratio), height: Math.round(taille * ratio), 'aria-hidden': 'true' });
+    var ctx = c.getContext('2d');
+    ctx.scale(ratio, ratio);
+    MP.dessinerBoule(ctx, taille / 2, taille / 2, taille * 0.45, MP.teinteJoueur(bE), 0.7, 0.4, MP.striesJoueur(bE), etat().initiales);
+    b.replaceChildren(c);
+    b.onclick = function () { MP.Partie.commencer(vue(), false); };
   }
 
   // Chaque seconde (le club joue) : compteur à jour, et l'écran redessiné seulement si un

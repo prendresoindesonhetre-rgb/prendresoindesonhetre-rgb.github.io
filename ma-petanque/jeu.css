@@ -70,17 +70,21 @@ h1, h2, h3 { font-family: var(--titre); font-weight: 600; margin: 0; letter-spac
 /* ---------- Structure : en-tête, contenu, onglets ---------- */
 .appli { position: relative; z-index: 1; display: grid; grid-template-rows: auto 1fr auto; height: 100%; }
 .entete {
-  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "marque reglages" "bascule monnaie"; align-items: center; gap: 8px 12px;
+  display: grid; grid-template-columns: 1fr auto auto; grid-template-areas: "marque jouer reglages" "bascule monnaie monnaie"; align-items: center; gap: 8px 12px;
   padding: calc(10px + var(--haut)) calc(16px + var(--droite)) 10px calc(16px + var(--gauche));
   background: rgba(253, 252, 255, 0.72); backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--trait);
 }
 .marque { grid-area: marque; display: flex; align-items: center; gap: 10px; min-width: 0; }
 .entete .bascule { grid-area: bascule; justify-self: start; }
-.entete .porte-monnaie { grid-area: monnaie; }
+.entete .porte-monnaie { grid-area: monnaie; justify-self: end; }
 #bouton-reglages { grid-area: reglages; justify-self: end; }
+/* Raccourci « Jouer » : ta boule, à côté des réglages ; un appui lance une boule. */
+.jouer-vite { grid-area: jouer; width: 48px; height: 48px; transition: transform 0.12s ease; }
+.jouer-vite:active { transform: scale(0.9); }
+.jouer-vite canvas { width: 42px; height: 42px; }
 @media (min-width: 720px) {
-  .entete { grid-template-columns: 1fr auto auto auto; grid-template-areas: "marque bascule monnaie reglages"; }
+  .entete { grid-template-columns: 1fr auto auto auto auto; grid-template-areas: "marque bascule monnaie jouer reglages"; }
 }
 .marque svg { width: 36px; height: 36px; flex: none; }
 .marque h1 { font-family: var(--signature); font-weight: 600; font-size: 1.65em; color: var(--canard-fonce); line-height: 1; }
