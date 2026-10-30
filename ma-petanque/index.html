@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f2eef8">
+<title>Ma Pétanque</title>
+<link rel="stylesheet" href="polices/polices.css">
+<link rel="stylesheet" href="jeu.css">
+</head>
+<body>
+<div class="appli" id="appli" data-vue="pointage">
+  <header class="entete">
+    <div class="marque">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <defs><radialGradient id="gm" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#eef1f4"/><stop offset=".78" stop-color="#bcc4cc"/><stop offset="1" stop-color="#7f8a94"/></radialGradient></defs>
+        <circle cx="21" cy="22" r="17" fill="none" stroke="#44898c" stroke-width="2.2" opacity=".85"/>
+        <circle cx="20" cy="20" r="15" fill="url(#gm)"/><path d="M6.5 15c8 4 19 4 27 0M6.5 25c8-4 19-4 27 0" fill="none" stroke="rgba(30,58,58,.3)" stroke-width="1.2"/>
+      </svg>
+      <div><h1>Ma Pétanque</h1><small>Entraînement incrémental</small></div>
+    </div>
+    <div class="bascule" role="group" aria-label="Discipline">
+      <button type="button" data-d="pointage" aria-pressed="true">Pointage</button>
+      <button type="button" data-d="tir" aria-pressed="false">Tir</button>
+    </div>
+    <div class="porte-monnaie" title="Points de la discipline"><span id="points">0</span><span class="unite" id="unite">pts</span></div>
+    <button type="button" class="icone-bouton" id="bouton-reglages" aria-label="Réglages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+
+  <main id="contenu"></main>
+
+  <nav class="onglets" aria-label="Menu">
+    <button type="button" data-onglet="jouer" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="14" r="6"/><circle cx="18" cy="8" r="2.2"/><path d="M5 12c2.5 1 5.5 1 8 0"/></svg>
+      Jouer
+    </button>
+    <button type="button" data-onglet="boutique">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 10l7-7 7 7"/></svg>
+      Améliorer
+    </button>
+    <button type="button" data-onglet="competences">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M12 7.5v4M12 11.5 6.5 17M12 11.5l5.5 5.5"/></svg>
+      Compétences
+    </button>
+    <button type="button" data-onglet="boules">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="15" r="5"/><circle cx="16.5" cy="9" r="5"/></svg>
+      Boules
+    </button>
+    <button type="button" data-onglet="club">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="16.5" cy="9" r="2.5"/><path d="M2.5 20c.6-3.4 2.8-5.5 5.5-5.5s4.9 2.1 5.5 5.5M13.5 15.2c.9-.8 1.9-1.2 3-1.2 2.3 0 4 1.8 4.5 5"/></svg>
+      Club
+    </button>
+  </nav>
+</div>
+
+<div class="jeu" id="jeu" hidden>
+  <canvas class="terrain-jeu" id="toile"></canvas>
+  <div class="hud">
+    <button type="button" class="icone-bouton" id="quitter" aria-label="Retour au menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="titre">
+      <span class="hud-ligne"><b id="hud-titre">Pointage</b><span class="hud-distance" id="hud-distance"></span></span>
+      <span id="hud-defi" class="hud-defi"></span>
+      <span class="hud-palier"><span id="hud-palier">Palier 1</span><span class="barre-palier"><i id="hud-xp" style="width:0%"></i></span><span class="serie-mult" id="hud-serie" hidden></span><span id="hud-sous-titre" class="hud-terrain"></span></span>
+    </div>
+    <div class="porte-monnaie" id="hud-bourse"><span id="hud-points">0</span><span class="unite">pts</span></div>
+  </div>
+  <div class="commandes" id="commandes">
+    <div class="feuille" id="feuille" hidden>
+      <div class="puces" id="puces-techniques" aria-label="Technique"></div>
+      <div class="puces" id="puces-effets" aria-label="Effet"></div>
+    </div>
+    <div class="choix">
+      <button type="button" class="puce choix-bouton" id="choix-technique" aria-haspopup="true"></button>
+      <button type="button" class="puce choix-bouton" id="choix-effet" aria-haspopup="true"></button>
+    </div>
+    <p class="consigne" id="consigne">Glisse vers le but : la direction vise, la longueur donne la force.</p>
+  </div>
+  <div class="resultat" id="resultat" hidden></div>
+</div>
+
+<script src="js/donnees.js"></script>
+<script src="js/economie.js"></script>
+<script src="js/physique.js"></script>
+<script src="js/relief.js"></script>
+<script src="js/niveaux.js"></script>
+<script src="js/rendu.js"></script>
+<script src="js/vue.js"></script>
+<script src="js/son.js"></script>
+<script src="js/ecrans.js"></script>
+<script src="js/partie.js"></script>
+<script src="js/principal.js"></script>
+</body>
+</html>

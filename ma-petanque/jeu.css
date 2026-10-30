@@ -1,0 +1,445 @@
+/* Ma Pétanque — habillage aquarelle aux couleurs de « Prendre soin de son Hêtre » : bleu-canard (pointage), prune (tir), lavande, feuille, ambre. */
+:root {
+  /* Palette de « Prendre soin de son Hêtre » : bleu-canard, lavande, feuille, ambre, sur lavande très clair. */
+  --papier: #f2eef8;
+  --papier-fonce: #e9e3f2;
+  --carte: #fdfcff;
+  --encre: #1e3a3a;
+  --encre-douce: #5a7575;
+  --trait: rgba(26, 122, 122, 0.12);
+  --canard: #44898c;
+  --canard-fonce: #2f6e70;
+  --canard-pale: #e4f0f0;
+  --prune: #9a88c0;
+  --prune-fonce: #6e5d93;
+  --prune-pale: #efe9f8;
+  --lavande: #b8a8d0;
+  --lavande-fonce: #7a6a9a;
+  --lavande-pale: #f0eaf8;
+  --feuille: #7aaa6a;
+  --feuille-pale: #eef6ea;
+  --ambre: #d4956a;
+  --rose: #c05070;
+  --or: #e0b25e;
+  --or-pale: #fbefd8;
+  --ombre: 0 2px 6px rgba(26, 122, 122, 0.06), 0 12px 30px rgba(90, 74, 122, 0.10);
+  --rayon: 24px;
+  --accent: var(--canard);
+  --accent-fonce: var(--canard-fonce);
+  --accent-pale: var(--canard-pale);
+  --haut: env(safe-area-inset-top, 0px);
+  --bas: env(safe-area-inset-bottom, 0px);
+  --gauche: env(safe-area-inset-left, 0px);
+  --droite: env(safe-area-inset-right, 0px);
+  --titre: 'Cormorant Garamond', Georgia, 'Noto Serif', serif;
+  --texte: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --signature: 'Dancing Script', 'Cormorant Garamond', cursive;
+  /* Grain de papier aquarelle. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.35 0 0 0 0 0.45 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23f)'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+[data-vue="tir"] { --accent: var(--prune); --accent-fonce: var(--prune-fonce); --accent-pale: var(--prune-pale); }
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--texte);
+  font-size: clamp(15px, 1.2vw + 11px, 18px);
+  color: var(--encre);
+  background-color: var(--papier);
+  background-image: var(--grain);
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* Taches d'aquarelle aux bords de l'écran. */
+body::before {
+  content: ''; position: fixed; inset: -10%; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(38% 30% at 0% 0%, rgba(184, 168, 208, 0.45), transparent 70%),
+    radial-gradient(34% 26% at 100% 8%, rgba(68, 137, 140, 0.20), transparent 70%),
+    radial-gradient(40% 30% at 100% 100%, rgba(122, 170, 106, 0.22), transparent 70%),
+    radial-gradient(30% 24% at 0% 92%, rgba(212, 149, 106, 0.18), transparent 70%);
+  filter: blur(8px);
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, h3 { font-family: var(--titre); font-weight: 600; margin: 0; letter-spacing: 0.005em; text-wrap: balance; color: var(--canard-fonce); }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--lavande); outline-offset: 2px; }
+
+/* ---------- Structure : en-tête, contenu, onglets ---------- */
+.appli { position: relative; z-index: 1; display: grid; grid-template-rows: auto 1fr auto; height: 100%; }
+.entete {
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "marque reglages" "bascule monnaie"; align-items: center; gap: 8px 12px;
+  padding: calc(10px + var(--haut)) calc(16px + var(--droite)) 10px calc(16px + var(--gauche));
+  background: rgba(253, 252, 255, 0.72); backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--trait);
+}
+.marque { grid-area: marque; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.entete .bascule { grid-area: bascule; justify-self: start; }
+.entete .porte-monnaie { grid-area: monnaie; }
+#bouton-reglages { grid-area: reglages; justify-self: end; }
+@media (min-width: 720px) {
+  .entete { grid-template-columns: 1fr auto auto auto; grid-template-areas: "marque bascule monnaie reglages"; }
+}
+.marque svg { width: 36px; height: 36px; flex: none; }
+.marque h1 { font-family: var(--signature); font-weight: 600; font-size: 1.65em; color: var(--canard-fonce); line-height: 1; }
+.marque small { display: block; font-family: var(--texte); font-weight: 600; color: var(--encre-douce); font-size: 0.66em; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bascule { display: inline-flex; background: var(--papier-fonce); border-radius: 999px; padding: 4px; gap: 2px; }
+.bascule button {
+  border: 0; background: transparent; padding: 8px 18px; border-radius: 999px; font-weight: 700;
+  color: var(--encre-douce); min-height: 40px; display: inline-flex; align-items: center; gap: 6px;
+}
+.bascule button[aria-pressed="true"][data-d="pointage"] { background: var(--canard-fonce); color: #fff; box-shadow: var(--ombre); }
+.bascule button[aria-pressed="true"][data-d="tir"] { background: var(--prune-fonce); color: #fff; box-shadow: var(--ombre); }
+.porte-monnaie {
+  display: inline-flex; gap: 6px; background: var(--carte); border: 1px solid var(--trait);
+  border-radius: 999px; padding: 6px 14px; font-weight: 800; font-variant-numeric: tabular-nums; min-height: 40px; align-items: center;
+}
+.porte-monnaie .unite { font-weight: 700; color: var(--accent-fonce); font-size: 0.8em; }
+.porte-monnaie.pulse { animation: pulse 0.5s ease-out; }
+@keyframes pulse { 40% { transform: scale(1.12); background: var(--or-pale); } }
+.icone-bouton { border: 0; background: transparent; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; }
+.icone-bouton:active { background: var(--papier-fonce); }
+.icone-bouton svg { width: 24px; height: 24px; }
+
+main { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 18px calc(16px + var(--droite)) 26px calc(16px + var(--gauche)); }
+.ecran { max-width: 1100px; margin: 0 auto; display: grid; gap: 18px; }
+.ecran > h2 { font-size: 1.45em; }
+.intro { color: var(--encre-douce); margin: -8px 0 0; line-height: 1.45; }
+
+.onglets {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  background: rgba(253, 252, 255, 0.85); backdrop-filter: blur(6px); border-top: 1px solid var(--trait);
+  padding: 6px calc(6px + var(--droite)) calc(6px + var(--bas)) calc(6px + var(--gauche));
+}
+.onglets button {
+  border: 0; background: transparent; padding: 6px 4px; border-radius: 18px; min-height: 56px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  font-size: 0.72em; font-weight: 700; color: var(--encre-douce); min-width: 0;
+}
+.onglets svg { width: 26px; height: 26px; }
+.onglets button[aria-current="page"] { color: var(--accent-fonce); background: var(--accent-pale); }
+
+/* Paysage bas (téléphone couché) : les onglets passent sur le côté. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .appli { grid-template-columns: auto 1fr; grid-template-rows: auto 1fr; }
+  .entete { grid-column: 1 / -1; padding-top: calc(6px + var(--haut)); padding-bottom: 6px; }
+  .onglets { grid-row: 2; grid-column: 1; grid-template-columns: none; grid-auto-rows: 1fr; border-top: 0; border-right: 1px solid var(--trait); padding: 4px 4px calc(4px + var(--bas)) calc(4px + var(--gauche)); width: 96px; }
+  main { grid-row: 2; grid-column: 2; }
+}
+
+/* ---------- Cartes ---------- */
+.carte { background: var(--carte); border: 1px solid var(--trait); border-radius: var(--rayon); box-shadow: var(--ombre); padding: 18px; }
+.grille { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); }
+.ligne { display: flex; align-items: center; gap: 12px; }
+.ligne.espace { justify-content: space-between; }
+.discret { color: var(--encre-douce); font-size: 0.88em; }
+.etiquette { display: inline-block; font-size: 0.7em; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-fonce); }
+
+.bouton {
+  border: 0; border-radius: 999px; padding: 12px 22px; font-weight: 800; min-height: 50px;
+  background: var(--accent-fonce); color: #fff; box-shadow: 0 6px 16px rgba(90, 74, 122, 0.18);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-align: center;
+  transition: transform 0.12s ease;
+}
+.bouton:active { transform: scale(0.97); }
+.bouton.secondaire { background: var(--carte); color: var(--accent-fonce); border: 1.5px solid var(--accent); box-shadow: none; }
+.bouton.large { width: 100%; }
+.bouton.grand { font-size: 1.12em; min-height: 60px; }
+.bouton:disabled { background: var(--papier-fonce); color: #a59cb0; box-shadow: none; cursor: default; transform: none; }
+.bouton.secondaire:disabled { background: transparent; border-color: var(--papier-fonce); }
+.prix { font-variant-numeric: tabular-nums; }
+
+/* Accueil d'une discipline : lavis d'aquarelle. */
+.heros {
+  position: relative; overflow: hidden; border: 0;
+  background:
+    radial-gradient(70% 90% at 100% 0%, rgba(183, 166, 220, 0.45), transparent 70%),
+    radial-gradient(60% 80% at 0% 100%, var(--accent-pale), transparent 75%),
+    var(--carte);
+  display: grid; gap: 14px;
+}
+.heros::after {
+  content: ''; position: absolute; right: -30px; top: -30px; width: 170px; height: 170px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, rgba(255,255,255,0.95), rgba(220,214,232,0.7) 30%, rgba(150,140,170,0.45) 65%, transparent 71%);
+  filter: blur(0.5px); pointer-events: none; opacity: 0.8;
+}
+.heros h2 { font-size: 2em; position: relative; z-index: 1; }
+.heros > * { position: relative; z-index: 1; }
+.pastilles { display: flex; flex-wrap: wrap; gap: 8px; }
+.pastille { background: rgba(255, 255, 255, 0.7); border: 1px solid var(--trait); border-radius: 999px; padding: 5px 12px; font-size: 0.85em; font-weight: 700; }
+.actions { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); position: relative; z-index: 1; }
+
+/* Palier et barre de progression */
+.palier { display: grid; gap: 6px; }
+.palier .ligne b { font-family: var(--titre); font-weight: 500; font-size: 1.15em; }
+.barre-palier { height: 12px; border-radius: 99px; background: rgba(26, 122, 122, 0.12); overflow: hidden; }
+.barre-palier i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--lavande)); transition: width 0.6s ease; }
+.saison { display: grid; gap: 10px; background: radial-gradient(80% 100% at 100% 0%, var(--or-pale), transparent 70%), var(--carte); }
+.parcours-carte { display: grid; gap: 10px; }
+.montagne-carte { display: grid; gap: 10px; background: radial-gradient(90% 80% at 50% 0%, rgba(184,168,208,0.22), transparent 70%), var(--carte); }
+.montagne-carte p, .montagne-carte h3 { margin: 0; }
+.montagne-dessin svg { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto; }
+.couleurs-carte { display: grid; gap: 10px; }
+.couleurs-carte p, .couleurs-carte h3 { margin: 0; }
+.resultat .conseil { display: grid; gap: 8px; padding: 10px 12px; border-radius: 14px; background: rgba(224,178,94,0.16); border: 1px solid rgba(196,143,44,0.35); }
+.resultat .conseil p { margin: 0; font-weight: 600; font-size: 0.9em; color: var(--encre); }
+.resultat .conseil .bouton { justify-self: start; min-height: 40px; padding: 6px 16px; }
+.gravure { display: grid; gap: 12px; justify-items: stretch; max-width: 380px; width: calc(100% - 32px); }
+.gravure h2, .gravure p { margin: 0; }
+.gravure .gravure-boule { width: 140px; height: 140px; justify-self: center; }
+.lien-discret { border: 0; background: none; color: var(--encre-douce); font: 600 0.9em var(--texte); text-decoration: underline; padding: 6px; cursor: pointer; }
+.initiales { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.initiales span { display: grid; }
+.initiales small { color: var(--encre-douce); font-size: 0.8em; }
+.initiales input { width: 5.2em; font: 800 1.2em var(--texte); letter-spacing: 0.12em; text-align: center; text-transform: uppercase; padding: 8px; border-radius: 12px; border: 1.5px solid var(--trait); background: var(--carte); color: var(--encre); }
+.couleurs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.couleur { display: grid; justify-items: center; gap: 2px; padding: 8px 4px; border-radius: 14px; border: 1.5px solid rgba(110,93,147,0.18); background: rgba(255,255,255,0.7); font: inherit; color: var(--encre); cursor: pointer; }
+.couleur canvas { width: 44px; height: 44px; }
+.couleur b { font-size: 0.8em; }
+.couleur small { font-size: 0.7em; color: var(--encre-douce); text-align: center; line-height: 1.2; }
+.couleur.choisie { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(47,110,112,0.25); }
+.couleur:disabled { opacity: 0.75; cursor: default; }
+.parcours-carte p, .parcours-carte h3 { margin: 0; }
+.trophees { font-family: var(--titre); font-size: 1.3em; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.stat { background: var(--accent-pale); border-radius: 18px; padding: 10px 12px; }
+.stat b { display: block; font-size: 1.35em; font-variant-numeric: tabular-nums; font-family: var(--titre); font-weight: 500; }
+.stat span { font-size: 0.8em; color: var(--encre-douce); }
+
+/* Terrains */
+.terrains { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr)); }
+.terrain {
+  border: 2px solid transparent; border-radius: 18px; padding: 0; overflow: hidden; text-align: left; background: var(--carte);
+  box-shadow: var(--ombre); display: grid; grid-template-rows: auto auto;
+}
+.terrain canvas { width: 100%; height: auto; aspect-ratio: 8 / 3; display: block; }
+.terrain .texte { padding: 8px 10px 10px; display: grid; gap: 2px; }
+.terrain b { font-size: 0.95em; }
+.terrain.bloque canvas { filter: grayscale(0.6) opacity(0.7); }
+div.terrain { cursor: default; }
+
+.liste-lancers { display: grid; gap: 6px; }
+.lancer { display: grid; grid-template-columns: 86px 1fr auto; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 14px; background: var(--accent-pale); }
+.lancer .geste { font-size: 0.68em; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--accent-fonce); }
+.lancer.bloque { background: var(--papier); opacity: 0.75; }
+
+/* Compétences */
+.branches { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.branches button { flex: none; border: 1.5px solid var(--trait); background: var(--carte); border-radius: 999px; padding: 8px 16px; font-weight: 700; min-height: 44px; color: var(--encre-douce); }
+.branches button[aria-pressed="true"] { background: var(--accent-fonce); border-color: var(--accent-fonce); color: #fff; }
+.arbre { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.amelioration { display: grid; gap: 10px; align-content: start; }
+.amelioration h3 { font-size: 1.12em; }
+.amelioration p { margin: 0; color: var(--encre-douce); font-size: 0.92em; line-height: 1.45; }
+.niveau { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 0.9em; }
+.jauge { flex: 1; height: 8px; border-radius: 99px; background: rgba(26, 122, 122, 0.12); overflow: hidden; }
+.jauge i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--lavande)); border-radius: inherit; }
+.verrou { color: var(--lavande-fonce); font-weight: 700; font-size: 0.86em; display: flex; gap: 6px; align-items: center; }
+.amelioration.bloquee { opacity: 0.75; }
+.amelioration.max .bouton { background: var(--or); color: #5a4420; box-shadow: none; }
+
+/* Boules */
+.boule-carte { display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: start; }
+.boule-carte canvas { width: 96px; height: 96px; }
+.boule-carte h3 { font-size: 1.12em; }
+.boule-carte.equipee { outline: 2.5px solid var(--accent); }
+.barres { display: grid; gap: 4px; margin: 8px 0; font-size: 0.78em; }
+.barre { display: grid; grid-template-columns: 82px 1fr 54px; align-items: center; gap: 8px; }
+.barre .jauge { height: 6px; }
+.barre b { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.barre b small { font-size: 0.85em; font-weight: 800; }
+.barre b small.plus { color: #3f8a52; }
+.barre b small.moins { color: #b8445f; }
+.jauge-reglage { display: flex; }
+.jauge-reglage i { border-radius: 0; }
+.jauge-reglage i:first-child { border-radius: 99px 0 0 99px; }
+.jauge-reglage i.ajout { background: #6fb37c; }
+.jauge-reglage i.retrait { background: repeating-linear-gradient(135deg, rgba(184,68,95,0.45) 0 3px, rgba(184,68,95,0.12) 3px 6px); }
+.reglage-stats { color: var(--accent-fonce); font-weight: 700; }
+.affinites { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.affinite { font-size: 0.72em; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: var(--papier-fonce); }
+.affinite.plus { background: var(--feuille-pale); color: #3f6b33; }
+.affinite.moins { background: #fbe9ee; color: #9a3a56; }
+.boule-carte .bouton { grid-column: 1 / -1; }
+
+/* ---------- Écran de jeu ---------- */
+.jeu { position: fixed; inset: 0; background: var(--papier); z-index: 10; touch-action: none; }
+.jeu canvas.terrain-jeu { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hud {
+  position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 10px;
+  /* Le haut de l'écran est libre (barre d'état cachée) : on ne garde que la marge d'une caméra. */
+  padding: calc(6px + min(var(--haut), 26px)) calc(12px + var(--droite)) 8px calc(12px + var(--gauche));
+  background: linear-gradient(180deg, rgba(242, 238, 248, 0.95), rgba(242, 238, 248, 0.6) 70%, rgba(242, 238, 248, 0));
+  color: var(--encre); pointer-events: none;
+}
+.hud > * { pointer-events: auto; }
+.hud .icone-bouton { background: var(--carte); color: var(--encre); box-shadow: var(--ombre); }
+.hud .titre { display: grid; gap: 2px; line-height: 1.15; margin-right: auto; min-width: 0; }
+.hud .titre b { font-family: var(--titre); font-weight: 500; font-size: 1.1em; }
+.hud .titre span { font-size: 0.8em; color: var(--encre-douce); }
+/* Bandeau en trois lignes : titre et distance, défi, palier et terrain. */
+.hud-ligne { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hud .titre .hud-distance {
+  flex: none; font-family: var(--titre); font-size: 1.25em; font-weight: 600; color: var(--accent-fonce);
+  background: rgba(253, 252, 255, 0.92); border-radius: 999px; padding: 0 10px; box-shadow: var(--ombre);
+}
+.hud .titre .hud-terrain { font-size: 1em; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hud .titre #hud-defi { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud.dore .titre b { color: #a8792a; }
+.hud-palier { display: flex; align-items: center; gap: 8px; font-size: 0.75em; font-weight: 800; color: var(--encre-douce); white-space: nowrap; min-width: 0; }
+.hud-palier .barre-palier { width: min(120px, 22vw); height: 8px; flex: none; }
+.serie-mult { background: var(--or-pale); color: #8a6420; border-radius: 99px; padding: 1px 8px; font-weight: 800; white-space: nowrap; }
+
+.commandes {
+  position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 6px;
+  padding: 10px calc(12px + var(--droite)) calc(8px + var(--bas)) calc(12px + var(--gauche));
+  background: linear-gradient(0deg, rgba(242, 238, 248, 0.96), rgba(242, 238, 248, 0.75) 70%, rgba(242, 238, 248, 0));
+  color: var(--encre);
+}
+.commandes { pointer-events: none; }            /* le doigt peut viser jusque sous les commandes */
+.commandes .puces, .commandes button { pointer-events: auto; }
+.puces { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; justify-self: start; max-width: 100%; }
+.puces::-webkit-scrollbar { display: none; }
+.puce {
+  flex: none; border: 1.5px solid var(--trait); background: rgba(253, 252, 255, 0.85); color: var(--encre);
+  border-radius: 999px; padding: 7px 14px; font-weight: 700; font-size: 0.88em; min-height: 40px; display: inline-flex; align-items: center; gap: 6px;
+}
+.puce[aria-pressed="true"] { background: var(--accent-fonce); color: #fff; border-color: var(--accent-fonce); }
+.puce:disabled { opacity: 0.45; }
+.puce svg { width: 15px; height: 15px; }
+.puce.dur small { font-size: 0.72em; font-weight: 800; color: #9a3a56; background: #fbe9ee; border-radius: 99px; padding: 1px 6px; }
+.puce.dur[aria-pressed="true"] small { background: rgba(255, 255, 255, 0.85); }
+.puce small.boule-manque { font-size: 0.72em; font-weight: 800; color: var(--lavande-fonce); background: var(--lavande-pale, #efe9f8); border-radius: 99px; padding: 1px 6px; }
+.puce-titre { flex: none; align-self: center; font-size: 0.7em; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--encre-douce); padding: 0 2px 0 6px; }
+.puce-titre:first-child { padding-left: 0; }
+.consigne { font-size: 0.78em; text-align: center; color: var(--encre-douce); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Barre compacte : la technique et l'effet en deux boutons ; la liste s'ouvre au-dessus. */
+.choix { display: flex; gap: 8px; justify-content: center; }
+.choix-bouton { background: var(--carte); box-shadow: var(--ombre); }
+.choix-bouton::after { content: '▾'; font-size: 0.8em; opacity: 0.7; }
+.choix-bouton:disabled::after { content: none; }
+.choix-bouton:disabled { opacity: 1; }
+.feuille { display: grid; gap: 8px; padding: 10px; border-radius: 20px; background: rgba(253, 252, 255, 0.97); box-shadow: var(--ombre); pointer-events: auto; }
+.feuille .puces { flex-wrap: wrap; justify-content: center; overflow: visible; }
+
+/* Paysage bas : la barre compacte reste en bas à droite, le bandeau tient sur moins de lignes. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .commandes { left: auto; width: min(420px, 50vw); }
+}
+
+.resultat {
+  position: absolute; left: 50%; bottom: calc(14px + var(--bas)); transform: translateX(-50%);
+  width: min(440px, calc(100% - 24px)); max-height: calc(100% - 90px - var(--haut)); overflow-y: auto;
+  background: var(--carte); background-image: var(--grain); border-radius: 26px; padding: 14px 18px;
+  box-shadow: 0 14px 40px rgba(90, 74, 122, 0.25);
+  display: grid; gap: 8px; animation: monte 0.35s cubic-bezier(.2,.9,.3,1.2); cursor: pointer;
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  .resultat { left: auto; right: calc(12px + var(--droite)); transform: none; top: auto; bottom: calc(10px + var(--bas)); width: min(360px, 42vw); animation: glisse 0.35s ease-out; }
+}
+@keyframes monte { from { transform: translate(-50%, 30px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+@keyframes glisse { from { transform: translateX(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+.resultat h2 { font-size: 1.55em; }
+.resultat.gagne h2 { color: var(--canard-fonce); }
+.resultat.perdu h2 { color: var(--rose); }
+.gain-total { font-family: var(--titre); font-weight: 700; font-size: 1.7em; color: var(--canard-fonce); font-variant-numeric: tabular-nums; }
+.gains-ligne { display: flex; flex-wrap: wrap; gap: 6px; }
+.gains-ligne span { background: var(--papier); border-radius: 99px; padding: 4px 10px; font-size: 0.8em; font-weight: 800; font-variant-numeric: tabular-nums; }
+.gains-ligne span.mult { background: var(--or-pale); color: #8a6420; }
+.prochain { display: grid; gap: 4px; font-size: 0.82em; font-weight: 700; color: var(--encre-douce); }
+.prochain .barre-palier { height: 6px; }
+.palier-info { font-weight: 800; font-size: 0.88em; }
+.palier-info.monte { color: var(--lavande-fonce); }
+.palier-info.baisse { color: var(--rose); }
+.suite { margin: 0; text-align: center; font-weight: 800; color: var(--accent-fonce); font-size: 0.9em; animation: respire 1.6s ease-in-out infinite; }
+@keyframes respire { 50% { opacity: 0.55; } }
+
+/* Fête du palier */
+.fete {
+  position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none;
+  background: var(--carte); background-image: var(--grain); border-radius: 30px; padding: 18px 30px; text-align: center;
+  box-shadow: 0 18px 50px rgba(90, 74, 122, 0.3); animation: fete 2.2s ease-out forwards;
+}
+.fete b { display: block; font-family: var(--titre); font-weight: 500; font-size: 2.1em; color: var(--lavande-fonce); white-space: nowrap; }
+.fete span { font-weight: 700; color: var(--encre-douce); }
+@keyframes fete { 0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } 20% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -58%); } }
+
+/* Fenêtres (réglages, confirmation) */
+.voile { position: fixed; inset: 0; background: rgba(30, 58, 58, 0.35); display: grid; place-items: center; z-index: 30; padding: 16px; }
+.fenetre { background: var(--carte); background-image: var(--grain); border-radius: 26px; padding: 22px; width: min(420px, 100%); display: grid; gap: 14px; box-shadow: 0 14px 40px rgba(90, 74, 122, 0.3); max-height: 100%; overflow-y: auto; }
+.fenetre-entete { position: sticky; top: -22px; z-index: 2; margin: -22px -22px 0; padding: 16px 22px 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--carte); border-radius: 26px 26px 0 0; box-shadow: 0 6px 10px -10px rgba(90, 74, 122, 0.35); }
+.fenetre-entete h2 { margin: 0; }
+.fermer-rond { width: 44px; height: 44px; flex: none; border-radius: 50%; border: 1.5px solid var(--trait); background: var(--carte); color: var(--encre); font: 600 1.6em/1 var(--texte); cursor: pointer; }
+.curseur { display: grid; gap: 4px; }
+.curseur .ligne { font-weight: 700; color: var(--encre-douce); }
+.curseur input[type=range] { width: 100%; accent-color: var(--accent-fonce); height: 32px; }
+.essai-croix { width: 100%; height: 300px; border-radius: 18px; background: rgba(184,168,208,0.14); border: 1.5px dashed rgba(110,93,147,0.3); touch-action: none; }
+.interrupteur { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 48px; }
+.interrupteur input { width: 52px; height: 30px; accent-color: var(--accent-fonce); }
+.aide { display: grid; gap: 8px; font-size: 0.95em; line-height: 1.5; }
+.aide p { margin: 0; }
+
+.toast {
+  position: fixed; left: 50%; top: calc(74px + var(--haut)); transform: translateX(-50%); z-index: 40;
+  background: var(--encre); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 700; font-size: 0.92em;
+  box-shadow: var(--ombre); animation: apparait 0.25s ease-out; max-width: calc(100% - 32px); text-align: center;
+}
+@keyframes apparait { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+.hud-defi { font-size: 0.78em; font-weight: 700; color: var(--prune-fonce); }
+.defi-info { font-weight: 700; font-size: 0.88em; color: var(--encre-douce); }
+.defi-info.reussi { color: var(--canard-fonce); }
+
+/* Épreuves : le « boss » qui débloque une technique. */
+.epreuve-carte { border: 1.5px solid rgba(122, 106, 154, 0.35); background: linear-gradient(160deg, var(--lavande-pale), var(--carte) 60%); display: grid; gap: 10px; }
+.epreuve-carte .etiquette { color: var(--lavande-fonce); }
+.epreuve-carte.ouverte { border-color: var(--accent); box-shadow: var(--ombre), 0 0 0 3px var(--accent-pale); }
+.epreuve-carte p { margin: 0; }
+.hud.epreuve .titre b { color: var(--lavande-fonce); }
+.hud.epreuve .hud-defi { color: var(--encre); font-weight: 600; }
+
+/* Achat par lots. */
+.lots { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lots .discret { margin-right: 4px; font-weight: 700; }
+.lots button { border: 1.5px solid var(--trait); background: var(--carte); border-radius: 999px; padding: 6px 14px; font-weight: 800; min-height: 40px; color: var(--encre-douce); font-family: var(--texte); }
+.lots button[aria-pressed="true"] { background: var(--accent-pale); border-color: var(--accent); color: var(--accent-fonce); }
+
+/* Succès. */
+.liste-succes { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.succes { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 18px; background: var(--carte); border: 1.5px solid var(--trait); opacity: 0.85; }
+.succes > div { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.succes .medaille { font-size: 1.5em; line-height: 1; color: var(--lavande); }
+.succes.obtenu { opacity: 1; border-color: var(--or); background: linear-gradient(160deg, var(--or-pale), var(--carte) 70%); }
+.succes.obtenu .medaille { color: var(--or); }
+.succes .niveau { display: flex; gap: 8px; align-items: center; }
+.succes .niveau .jauge { flex: 1; }
+
+/* Club. */
+.club-heros h2 { font-size: 2em; }
+.club-heros h2 small { font-size: 0.5em; font-family: var(--texte); color: var(--encre-douce); font-weight: 700; }
+.recrue .ligne b.compte { font-family: var(--titre); font-size: 1.5em; color: var(--accent-fonce); }
+.elan { color: var(--accent-fonce); font-weight: 800; }
+.absence { display: grid; gap: 12px; }
+.absence .gros { font-family: var(--titre); font-size: 1.6em; color: var(--canard-fonce); margin: 0; }
+.marque > div { min-width: 0; }
+.reglage-choix { display: grid; gap: 8px; font-weight: 700; }
+
+/* Boules : techniques permises, terrain, réglage. */
+.boule-carte .permet { margin: 6px 0 0; font-size: 0.85em; font-weight: 700; color: var(--encre); }
+.boule-carte .specialite { margin: 2px 0 0; font-size: 0.82em; font-weight: 700; color: #3f6b33; }
+.reglage-boule { grid-column: 1 / -1; display: grid; gap: 6px; padding: 10px 12px; border-radius: 14px; background: var(--lavande-pale); }
+.reglage-ligne { display: grid; grid-template-columns: 1fr auto 2ch auto; gap: 8px; align-items: center; }
+.reglage-nom { display: grid; line-height: 1.15; }
+.reglage-nom small { color: var(--encre-douce); font-size: 0.78em; }
+.reglage-valeur { text-align: center; font-weight: 800; }
+.reglage-boule .pas { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--trait); background: var(--carte); font-weight: 800; font-size: 1.1em; color: var(--encre); }
+.reglage-boule .pas:disabled { opacity: 0.35; }
+.prochaine-etape { display: grid; gap: 8px; border: 2px solid var(--accent-pale, #e6f0f0); }
+.prochaine-etape p { margin: 0; font-weight: 700; }
+.prochaine-etape .bouton { justify-self: start; }
+.etape-info { font-size: 0.85em; font-weight: 700; color: var(--accent-fonce); }
