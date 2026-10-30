@@ -662,31 +662,17 @@ MP.dessinerMarques = function (ctx, marques) {
 // creux, ses coins sont arrondis, deux fines lignes de niveau suivent la pente. Plus elle est raide,
 // plus elle monte haut sur peu de longueur. Un dos d'âne (ses deux moitiés o, b) : une arête en travers.
 function peindrePlan(o, Lum, b) {
-  var dos = !!b, cx = dos ? (o.x + b.x) / 2 : o.x, cz = dos ? (o.z + b.z) / 2 : o.z, dx = dos ? b.dx : o.dx, dz = dos ? b.dz : o.dz;
-  // Une grande pente douce a des côtés plus doux et ne porte pas d'ombre (pas de longue ombre en trait).
-  var Wm = o.W / 2, h2 = dos ? o.L : o.L / 2, bord = o.raide || dos ? Math.max(0.06, Math.min(0.12, 0.15 * o.W)) : Math.min(0.35, 0.15 * o.W);
-  var H = dos ? 0.06 + 0.04 * Math.min(1, b.f / 1.1)
-    : (o.raide ? Math.max(0.08, Math.min(0.25, 0.26 * o.L)) : Math.max(0.1, Math.min(0.18, 0.08 * o.L)));
-  var doux = !o.raide && !dos, P = dos ? 0 : 0.25 + 0.35 * o.L, lo = doux ? 0 : Math.min(0.35, H * 1.4), m = lo + 0.1;
-  function loc(x, z) { var ex = x - cx, ez = z - cz; return [ex * dx + ez * dz, -ex * dz + ez * dx]; }
-  // 0 au creux, 1 au sommet et derrière (pour un dos d'âne : 1 sur la crête) ; pied et sommet adoucis.
-  function monte(u) {
-    var t = dos ? 1 - Math.abs(u) / h2 : (h2 - u) / o.L;
-    t = Math.max(0, Math.min(1, t));
-    return 0.5 * t + 0.5 * t * t * (3 - 2 * t);
-  }
-  // Les côtés : un bord net (on voit le relief) aux coins arrondis du côté du sommet.
-  function cote(u, v) {
-    var coin = dos ? 0 : Math.max(0, Math.min(1, (-h2 - u) / Math.max(0.01, P))) * Math.min(Wm, 0.35);
-    return lisse(Wm - coin * coin / Math.max(0.01, Wm), Wm - coin * coin / Math.max(0.01, Wm) - bord, Math.abs(v));
-  }
+  // La forme est celle que suit la boule (MP.formePlan) : ce qu'on voit, c'est ce qui la pousse.
+  var F = MP.formePlan(o, b), dos = F.dos, cx = F.cx, cz = F.cz, dx = F.dx, dz = F.dz, Wm = F.Wm, h2 = F.h2, H = F.H, P = F.P;
+  var monte = F.monte, cote = F.cote, loc = F.loc;
+  // Une grande pente douce ne porte pas d'ombre (pas de longue ombre en trait).
+  var doux = !o.raide && !dos, lo = doux ? 0 : Math.min(0.35, H * 1.4), m = lo + 0.1;
   var u0 = -h2 - P - m, u1 = h2 + m, v0 = Wm + m, xs = [], zs = [];
   [[u0, -v0], [u0, v0], [u1, -v0], [u1, v0]].forEach(function (c) { xs.push(cx + dx * c[0] - dz * c[1]); zs.push(cz + dz * c[0] + dx * c[1]); });
   var X0 = Math.min.apply(null, xs), X1 = Math.max.apply(null, xs), Z0 = Math.min.apply(null, zs), Z1 = Math.max.apply(null, zs);
   return MP.peindreRelief(X0, Z0, X1 - X0, Z1 - Z0, 90, Lum.x, Lum.z, {
-    hauteur: function (x, z) { var q = loc(x, z); return H * monte(q[0]) * cote(q[0], q[1]); },
-    // Le haut se fond dans le terrain derrière le sommet (pas de seconde pente).
-    masque: dos ? null : function (x, z) { return lisse(-h2 - P, -h2 - 0.3 * P, loc(x, z)[0]); },
+    hauteur: F.hauteur,
+    masque: F.masque,
     portee: lo, sombre: 2.4, clair: 6, flou: 1.8,
     couleur: function (x, z, h, c) {
       var q = loc(x, z), t = monte(q[0]), w = cote(q[0], q[1]), lignes = 0;

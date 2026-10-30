@@ -139,8 +139,8 @@ MP.AMELIORATIONS = {
       desc: 'Quand tu maintiens, montre où la boule roule après sa chute : 10 cm au départ, 10 cm de plus à chaque niveau.' },
     { id: 'donnee', nom: 'Donnée marquée', max: 20, prix: 16, vol: true,
       desc: 'En l’air, un grand rond marque la région de la donnée : là où faire tomber ta boule pour qu’elle finisse près du cochonnet. Il reste toujours large (80 cm au début, 40 cm au mieux) et un peu à côté : à toi de trouver le point exact. La Lecture du sol y ajoute le relief, peu à peu.' },
-    { id: 'metre', nom: 'Mètre du pointeur', max: 20, prix: 8,
-      desc: 'Pendant la visée, annonce à quelle distance du cochonnet ta boule devrait s’arrêter si rien ne la gêne. Approximatif au début, au centimètre près à la fin.' },
+    { id: 'derniereForce', nom: 'Dernière force', max: 1, prix: 25,
+      desc: 'Un petit trait sur la jauge de force, à gauche, marque où tu l’as arrêtée au lancer d’avant (avec la même technique) : tu sais s’il faut plus ou moins fort. Achat unique.' },
     { id: 'lecturePuissance', nom: 'Repère de force', max: 20, prix: 4,
       desc: 'Montre sur la jauge la force qui amène la boule au cochonnet, comme sur un terrain plat (la Lecture du sol y ajoute le relief). Large au début, plus fine à chaque niveau.' },
     { id: 'bonusPoints', nom: 'Bonus de points', max: 200, prix: 7, desc: '+8 % de Points par niveau.' }
@@ -161,6 +161,8 @@ MP.AMELIORATIONS = {
 MP.AIDES_RETIREES = { pointage: {}, tir: { suiteSol: 15 } };
 // Aides du tir retirées ensuite (trop fortes, loin de la pétanque) : remboursées une fois aussi.
 MP.AIDES_RETIREES_2 = { pointage: {}, tir: { mire: 8, impact: 12 } };
+// Le Mètre du pointeur, remplacé par la Dernière force : remboursé une fois aussi.
+MP.AIDES_RETIREES_3 = { pointage: { metre: 8 }, tir: {} };
 
 // Les 9 techniques, dans l'ordre des affinités des boules. La technique choisie décide du geste :
 // famille « roule » : on glisse le doigt (direction + force) ; famille « vol » : on maintient

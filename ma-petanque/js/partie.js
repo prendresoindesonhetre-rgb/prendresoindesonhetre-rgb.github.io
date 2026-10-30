@@ -360,8 +360,7 @@ MP.Partie = (function () {
     var A = {}, D = d(), but = partie.cible || partie.cochonnet;
     A.effet = MP.effetPrevu(partie, g.lancer, but.z, g.apercu);
     if (technique().mode === 'pointage') {
-      var nM = MP.niveauAm(D, 'metre'), nD = MP.niveauAm(D, 'donnee');
-      if (nM) A.metre = g.apercu.mort ? { mort: true } : MP.metrePointeur(partie, g.apercu.arret, nM);
+      var nD = MP.niveauAm(D, 'donnee');
       if (nD && g.genre === 'vol') {
         var c = partie.cochonnet, cle = [partie.graine, g.choix.technique, g.choix.effet, nD, MP.niveau(D, 'lectureSol'), c.x.toFixed(3), c.z.toFixed(3)].join('/');
         A.donnee = donneeCache[cle] || (donneeCache[cle] = MP.donneeMarquee(partie, D, boule(), g.choix, nD));
@@ -392,6 +391,7 @@ MP.Partie = (function () {
       : MP.lancerEnLAir(d(), boule(), g.choix, g.point.x, g.point.z, partie.alea, partie.taille);
     if (mixte) { partie.boule = boule(); partie.d = d(); }
     MP.lancerBoule(partie, l);
+    dernieresForces[jeuMode() + '/' + g.choix.technique] = g.genre === 'glisse' ? g.puissance : forceEnLAir();
     MP.Son.lancer(g.genre === 'glisse' ? g.puissance : forceEnLAir());
     phase = 'lancer'; visee = null; aidesAvant = null;
     document.getElementById('commandes').hidden = true;
@@ -1046,12 +1046,6 @@ MP.Partie = (function () {
       ctx.beginPath(); ctx.arc(pd.x, pd.y, R, 0, 7); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
       etiquette('Donnée', pd.x, pd.y + R + 11, '#2f6e70');
     }
-    if (A.metre) {
-      // À côté du cochonnet : au-dessus, il y a déjà les ronds à battre et leur distance.
-      var m = A.metre, pc = vue.ecran(c.x, c.z);
-      etiquette(m.mort ? 'Mètre : hors jeu' : 'Mètre : ' + (m.jour < m.pas / 2 ? 'moins de ' + Math.round(m.pas * 100) + ' cm' : '≈ ' + Math.round(m.jour * 100) + ' cm'),
-        pc.x, pc.y, '#2f6e70', Math.max(16, c.r * vue.s + 10));
-    }
     if (A.passages) {
       var flou = MP.flouAide(A.passages.n, 15, 0.10, 0.01);
       A.passages.liste.forEach(function (x) {
@@ -1158,8 +1152,20 @@ MP.Partie = (function () {
     g.addColorStop(0, '#8fbcbe'); g.addColorStop(0.6, '#b8a8d0'); g.addColorStop(1, '#d4956a');
     ctx.fillStyle = g;
     arrondi(x - w / 2 + 2, bas - p * hJ, w - 4, p * hJ, 5); ctx.fill();
+    // Dernière force : un petit trait là où la jauge s'est arrêtée au lancer d'avant (même technique).
+    var avant = dernieresForces[jeuMode() + '/' + visee.choix.technique];
+    if (avant != null && MP.niveauAm(d(), 'derniereForce')) {
+      var ya = bas - avant * hJ;
+      ctx.strokeStyle = 'rgba(253,252,255,0.95)'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(x - w / 2 - 5, ya); ctx.lineTo(x + w / 2 + 5, ya); ctx.stroke();
+      ctx.strokeStyle = '#1e3a3a'; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.moveTo(x - w / 2 - 5, ya); ctx.lineTo(x + w / 2 + 5, ya); ctx.stroke();
+      ctx.lineCap = 'butt';
+    }
     texteEcran(Math.round(p * 100) + ' %', x + 8, haut - 12);
   }
+  // La force de chaque lancer, par discipline et technique (pour la Dernière force).
+  var dernieresForces = {};
 
   function forceEnLAir() {
     var t = visee.choix.technique, max = MP.vitessePourChute(t, MP.porteeMax(d(), boule(), t), partie.taille);

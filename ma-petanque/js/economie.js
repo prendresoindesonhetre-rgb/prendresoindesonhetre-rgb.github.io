@@ -73,6 +73,7 @@ MP.etatNeuf = function () {
     amelioRevues: true,        // … et depuis le nettoyage des compétences et améliorations
     aidesRevues: true,         // … et depuis les aides propres au pointage et au tir
     aidesTirRevues: true,      // … et depuis le retrait de la Ligne de mire et du Point d'impact
+    metreRetire: true,         // … et depuis le Mètre du pointeur remplacé par la Dernière force
     vue: 'pointage',
     couleurs: { possedees: ['boule'], choisie: 'boule' },   // couleurs de boule (MP.COULEURS)
     stries: { possedees: ['boule'], choisie: 'boule' },     // stries de boule (MP.STRIES)
@@ -95,6 +96,7 @@ MP.reparerEtat = function (brut) {
   var avantRevue = !!brut && brut.amelioRevues !== true;
   var avantAides = !!brut && brut.aidesRevues !== true;
   var avantAidesTir = !!brut && brut.aidesTirRevues !== true;
+  var avantMetre = !!brut && brut.metreRetire !== true;
   var neuf = MP.etatNeuf();
   if (!brut || typeof brut !== 'object') return neuf;
   function fusion(cible, source) {
@@ -129,7 +131,7 @@ MP.reparerEtat = function (brut) {
     if (rendu > 0) { neuf[D.id].points += rendu; neuf.rembourse = (neuf.rembourse || 0) + rendu; }
   });
   // Aides retirées d'une seule discipline : remboursées une fois (elles n'y existent plus).
-  [[avantAides, MP.AIDES_RETIREES], [avantAidesTir, MP.AIDES_RETIREES_2]].forEach(function (lot) {
+  [[avantAides, MP.AIDES_RETIREES], [avantAidesTir, MP.AIDES_RETIREES_2], [avantMetre, MP.AIDES_RETIREES_3]].forEach(function (lot) {
     if (lot[0]) MP.DISCIPLINES.forEach(function (D) {
       var achats = (brut[D.id] || {}).ameliorations || {}, rendu = 0;
       Object.keys(lot[1][D.id]).forEach(function (id) {
@@ -890,7 +892,7 @@ MP.enregistrerMontagne = function (etat, mode, res) {
 // Chaque piste : [genre, id] ; « tech » : la compétence de la technique jouée (Demi-portée…).
 MP.CONSEILS = {
   force: { texte: 'tes boules finissent trop longues ou trop courtes',
-    pointage: [['competence', 'dosage'], ['amelioration', 'metre'], ['amelioration', 'lecturePuissance'], ['competence', 'tech'], ['amelioration', 'donnee']],
+    pointage: [['competence', 'dosage'], ['amelioration', 'derniereForce'], ['amelioration', 'lecturePuissance'], ['competence', 'tech'], ['amelioration', 'donnee']],
     tir: [['competence', 'oeil'], ['competence', 'dosage'], ['competence', 'tech'], ['amelioration', 'lecturePuissance']] },
   direction: { texte: 'tes boules partent trop à gauche ou à droite',
     pointage: [['competence', 'stabilite'], ['amelioration', 'guide'], ['competence', 'tech'], ['amelioration', 'arcVol']],
@@ -898,7 +900,7 @@ MP.CONSEILS = {
   portee: { texte: 'le but est au bout de ta portée',
     pointage: [['competence', 'puissance']], tir: [['competence', 'puissance']] },
   relief: { texte: 'le relief dévie tes boules',
-    pointage: [['competence', 'lectureSol'], ['amelioration', 'donnee'], ['amelioration', 'metre'], ['competence', 'stabilite']],
+    pointage: [['competence', 'lectureSol'], ['amelioration', 'donnee'], ['competence', 'stabilite']],
     tir: [['competence', 'lectureSol'], ['competence', 'stabilite']] },
   vent: { texte: 'le vent dévie tes boules en l’air', astuce: 'Vise à côté, du côté d’où vient le vent (regarde la manche à air), ou lance plus bas.',
     pointage: [['amelioration', 'arcVol'], ['competence', 'stabilite']], tir: [['amelioration', 'arcVol'], ['competence', 'stabilite']] },

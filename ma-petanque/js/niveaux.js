@@ -91,6 +91,9 @@ function creerNiveau(mode, palier, graine, ligue, piste, relief, joueur) {
     if (!n || !MP.positionsValides(n.objets)) continue;
     // Le cochonnet évite les pentes raides (sauf si vraiment rien d'autre ne va).
     if (relief && !n.objets.every(function (o) { return relief.placeLibre(o.x, o.z, MP.rayonObjet(o.type), o.type === 'cochonnet' && k < 45); })) continue;
+    // Le but n'est jamais caché derrière le muret d'une pente : on peut toujours y aller en roulant.
+    var but = n.cible != null ? n.objets[n.cible] : n.objets.filter(function (o) { return o.type === 'cochonnet'; })[0];
+    if (relief && k < 45 && but && relief.cheminBarre(but.x, but.z)) continue;
     if (relief) {
       n.difficulte += relief.difficulte();
       n.etoiles = Math.max(1, Math.min(5, 1 + Math.floor(n.difficulte / 3)));
@@ -642,7 +645,9 @@ MP.reliefParcours = function (alea, numero, lancer, c, pente) {
   function signe() { return alea.suivant() < 0.5 ? 1 : -1; }
   function surLigne(z) { return c.x * z / c.z; }        // la ligne droite du cercle de lancer au but
   var z1 = c.z - alea.entre(1.6, 3), z2 = c.z + alea.entre(0.7, 1.3), f = alea.entre(0.85, 1), biais = alea.entre(-0.3, 0.3);
-  if (pente.devers) { var zv = c.z - alea.entre(1.2, 1.7); zones.push(MP.plan(surLigne(zv) + alea.entre(-0.2, 0.2), zv, pente.sens * Math.PI / 2 + biais, alea.entre(1.4, 2), alea.entre(1.4, 1.9), (0.3 + 0.4 * force) * f)); }
+  // Le dévers descend en biais vers le but : la boule y entre par le haut (de côté, elle buterait
+  // dans un muret) et la pente l'emmène sur le côté.
+  if (pente.devers) { var zv = c.z - alea.entre(1.2, 1.7); zones.push(MP.plan(surLigne(zv) + alea.entre(-0.2, 0.2), zv, pente.sens * alea.entre(0.35, 0.6) + biais * 0.3, alea.entre(1.4, 2), alea.entre(1.4, 1.9), (0.3 + 0.4 * force) * f)); }
   else zones.push(MP.plan(surLigne((z1 + z2) / 2), (z1 + z2) / 2, pente.sens > 0 ? 0 : Math.PI, z2 - z1, alea.entre(1.8, 2.4), (pente.sens > 0 ? 0.3 + 0.4 * force : 0.25 + 0.25 * force) * f));
   var cote = signe();
   if (numero >= 2 && alea.suivant() < 0.35 && c.z > 3.8) MP.placerForme(zones, function () {
@@ -659,7 +664,7 @@ MP.reliefParcours = function (alea, numero, lancer, c, pente) {
   });
   if (numero >= 3 && alea.suivant() < 0.55 && z1 > 2.6) MP.placerForme(zones, function () {
     var z3 = alea.entre(1.2, z1 - 1.2);
-    return MP.plan(surLigne(z3) + alea.entre(-0.3, 0.3), z3, signe() * Math.PI / 2 + alea.entre(-0.5, 0.5), alea.entre(0.6, 1), alea.entre(0.8, 1.3), MP.RAIDEUR * (0.3 + 0.3 * force), true);
+    return MP.plan(surLigne(z3) + alea.entre(-0.3, 0.3), z3, signe() * alea.entre(0.3, 0.7) + (alea.suivant() < 0.5 ? 0 : Math.PI), alea.entre(0.6, 1), alea.entre(0.8, 1.3), MP.RAIDEUR * (0.3 + 0.3 * force), true);
   });
   if (numero >= 4 && alea.suivant() < 0.45) MP.placerForme(zones, function () {
     var zt = alea.entre(2, c.z - 0.9);
@@ -770,10 +775,13 @@ function tirerEtapeMontagne(d, mode, k, graine, toutAccepter) {
   // place, après 20 essais, celles qui tiennent).
   var attendu = (E.embuches || []).length + ((E.embuches || []).indexOf('devers2') >= 0 ? 1 : 0);
   if (zones.length < attendu && !toutAccepter) return null;
-  if (terrain.formes) zones = MP.ajouterFormes(zones, MP.formesEnPente(graine, graine & 1 ? 1 : -1));
+  // Les nombreuses pentes du terrain en pente gardent ici leur force d'avant (un tiers) : l'étape
+  // impose sa technique, il faut pouvoir passer.
+  if (terrain.formes) zones = MP.ajouterFormes(zones, MP.formesEnPente(graine, graine & 1 ? 1 : -1).map(function (o) { o.attenue = 1 / 3; return o; }));
   zones = MP.sansRaideSous(zones, c.x, c.z, 0.3);
-  // La Montagne garde la force des pentes douces pour laquelle ses étapes ont été réglées une à une.
-  zones.forEach(function (o) { if (o.type === 'pente' || (o.type === 'plan' && !o.raide)) o.attenue = 1 / (o.globale ? MP.FORCE_PENTE_TERRAIN : MP.FORCE_PENTE); });
+  // La Montagne garde l'inclinaison du terrain en pente pour laquelle ses étapes ont été réglées ; ses
+  // pentes posées sur le terrain poussent aussi fort qu'ailleurs.
+  zones.forEach(function (o) { if (o.type === 'pente') o.attenue = 1 / (o.globale ? MP.FORCE_PENTE_TERRAIN : MP.FORCE_PENTE); });
   var relief = new MP.Relief(zones);
   if (!objets.every(function (o) { return relief.placeLibre(o.x, o.z, MP.rayonObjet(o.type)); })) return null;
   var vent = null;   // pas de vent
@@ -796,12 +804,14 @@ MP.reliefMontagne = function (alea, embuches, k, c, tir) {
   var fabriques = {
     devers: function () {
       var zv = c.z - alea.entre(1.2, 1.8);
-      return MP.plan(surLigne(zv) + alea.entre(-0.2, 0.2), zv, signe() * Math.PI / 2 + alea.entre(-0.3, 0.3), alea.entre(1.4, 2), alea.entre(1.4, 2), 0.25 + 0.4 * f);
+      // Une montée en biais : la boule y entre par le pied (de côté, elle buterait dans un muret),
+      // ralentit et part du côté de la descente.
+      return MP.plan(surLigne(zv) + alea.entre(-0.2, 0.2), zv, Math.PI + signe() * alea.entre(0.35, 0.6), alea.entre(0.9, 1.3), alea.entre(1.4, 2), 0.25 + 0.4 * f);
     },
     // Petites pentes sur le chemin, ou juste à côté s'il est déjà pris.
     devers2: function () {
       var z0 = alea.entre(1.2, Math.max(1.4, c.z - 1));
-      return MP.plan(Math.max(-1.5, Math.min(1.5, surLigne(z0) + signe() * alea.entre(0, 1.4))), z0, signe() * Math.PI / 2 + alea.entre(-0.5, 0.5), alea.entre(0.5, 0.8), alea.entre(0.6, 1), petite, true);
+      return MP.plan(Math.max(-1.5, Math.min(1.5, surLigne(z0) + signe() * alea.entre(0, 1.4))), z0, signe() * alea.entre(0.3, 0.7) + (alea.suivant() < 0.5 ? 0 : Math.PI), alea.entre(0.5, 0.8), alea.entre(0.6, 1), petite, true);
     },
     pente: function (e) {
       // (Plus courte quand le but est proche : il reste de la place pour les autres embûches.)
@@ -1072,16 +1082,6 @@ MP.donneeMarquee = function (partie, d, boule, choix, n) {
   }
   var rayon = MP.flouAide(n, 20, 0.8, 0.4), a = new MP.Aleatoire((partie.graine || 1) + 31 * n);
   return { x: p.x + a.gauss() * rayon * 0.5, z: p.z + a.gauss() * rayon * 0.5, rayon: rayon };
-};
-
-// Mètre du pointeur : le jour prévu entre ta boule arrêtée et le cochonnet, mesuré depuis un point un peu
-// décalé (35 cm au niveau 1, 2 cm au niveau 20) ; arrondi à 5 cm, puis au centimètre dès le niveau 12.
-MP.metrePointeur = function (partie, arret, n) {
-  var c = partie.cochonnet, flou = MP.flouAide(n, 20, 0.35, 0.02), a = new MP.Aleatoire((partie.graine || 1) * 7 + 13 * n);
-  var ang = a.entre(0, 2 * Math.PI), x = arret.x + Math.cos(ang) * flou, z = arret.z + Math.sin(ang) * flou;
-  var jour = Math.max(0, Math.hypot(x - c.x, z - c.z) - MP.MESURES.rayonBoule * (partie.taille || 1) - c.r);
-  var pas = n >= 12 ? 0.01 : 0.05;
-  return { jour: Math.round(jour / pas) * pas, pas: pas };
 };
 
 // Effet prévu : de combien l'effet gauche ou droite écarte ta boule à hauteur du but (en mètres, positif

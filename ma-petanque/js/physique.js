@@ -93,7 +93,7 @@ MP.FREIN_COCHONNET = 2.6;
 // frottement du terrain : la pente pousse fort, mais une boule peut toujours s'y arrêter. Sur une
 // pente courte et raide (PENTE_RAIDE), elle pousse plus fort que le frottement : la boule y file.
 MP.PENTE_FROTTEMENT = 0.8;
-MP.PENTE_RAIDE = 1.5;
+MP.PENTE_RAIDE = 4.5;
 MP.solPlafonne = function (relief, T, x, z) {
   var sol = relief.sous(x, z), p = Math.hypot(sol.pax, sol.paz), lim = (sol.raide ? MP.PENTE_RAIDE : MP.PENTE_FROTTEMENT) * T.frottement;
   if (p > lim) { var k = (p - lim) / p; sol.ax -= sol.pax * k; sol.az -= sol.paz * k; sol.pax -= sol.pax * k; sol.paz -= sol.paz * k; }
@@ -173,7 +173,7 @@ MP.Monde.prototype.etape = function (dt) {
         }
         else { c.vx *= nv / v; c.vz *= nv / v; }
         c.x += c.vx * dt; c.z += c.vz * dt;
-        if (this.relief) this.relief.racines(c);
+        if (this.relief) { this.relief.racines(c); this.relief.murets(c); }
         c.rotation += (nv > 0 ? nv : 0) * dt / c.r;
         c.axe = Math.atan2(c.vx, c.vz);
       }

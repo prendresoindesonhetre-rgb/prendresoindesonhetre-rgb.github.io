@@ -356,8 +356,10 @@ MP.Ecrans = (function () {
       return h('section', { class: 'carte amelioration' + (s.raison === 'max' ? ' max' : '') }, [
         h('h3', { texte: a.nom }),
         h('p', { texte: a.desc }),
-        h('div', { class: 'niveau' }, [h('span', { texte: 'N' + n }), jauge(n, a.max), h('span', { class: 'discret', texte: a.max })]),
-        s.raison === 'max' ? boutonPrix('Maximum atteint', null, false) : boutonLot('amelioration', a.id, 'Améliorer')
+        // Achat unique (max 1) : pas de niveaux, on l'a ou pas.
+        a.max === 1 ? h('div', { class: 'niveau' }, [h('span', { class: 'discret', texte: n ? 'Acheté' : 'Achat unique' })])
+          : h('div', { class: 'niveau' }, [h('span', { texte: 'N' + n }), jauge(n, a.max), h('span', { class: 'discret', texte: a.max })]),
+        s.raison === 'max' ? boutonPrix(a.max === 1 ? 'Acheté' : 'Maximum atteint', null, false) : boutonLot('amelioration', a.id, a.max === 1 ? 'Acheter' : 'Améliorer')
       ]);
     });
     return h('div', { class: 'ecran' }, [
@@ -788,7 +790,7 @@ MP.Ecrans = (function () {
         h('h3', { texte: 'Comment jouer' }),
         h('p', { texte: 'La technique choisie sous le terrain décide du geste. Glisser (roulette, tir roulé, rafle) : la direction du geste vise, sa longueur donne la force. Au tir, on débloque dans l’ordre le tir roulé, la rafle (elle touche le sol tout près et file plus loin), le tir simple en l’air, le tir devant puis le tir au fer. Certains terrains rendent une technique très imprécise (« imprécise ici » dans la liste des techniques) : une autre technique, ou une boule faite pour ce terrain, ira mieux.' }),
         h('p', { texte: 'Maintenir (lancers en l’air) : pose le doigt, la croix apparaît à côté et le suit (son écart et son angle se règlent ci-dessus). Place-la où la boule doit tomber, puis lâche.' }),
-        h('p', { texte: 'Aides de visée (dans Améliorer), propres à chaque discipline. Pointage : le Mètre du pointeur (à quelle distance du cochonnet ta boule s’arrêtera) et la Donnée marquée (où faire tomber ta boule en l’air). Tir : la Hauteur de passage (ta boule passe-t-elle au-dessus de la boule devant ?).' }),
+        h('p', { texte: 'Aides de visée (dans Améliorer), propres à chaque discipline. Pointage : la Dernière force (un trait sur la jauge marque ta force du lancer d’avant) et la Donnée marquée (où faire tomber ta boule en l’air). Tir : la Hauteur de passage (ta boule passe-t-elle au-dessus de la boule devant ?).' }),
         h('p', { texte: 'Effets gauche et droite : en roulant, la boule tourne de ce côté ; pendant la visée, une flèche montre de combien. Au tir au fer, l’effet agit au choc : ta boule file de son côté et la cible part un peu de l’autre.' }),
         h('p', { texte: 'Zone après le choc (tir) : un ovale dessiné à côté de la cible. Frappe la cible, et ta boule doit finir dedans : joue l’effet de ce côté ; le Carreau la garde près, et Diriger au fer (gagnée à son épreuve) la rend plus sûre. On la trouve en défi dans les niveaux, dans l’épreuve « Diriger au fer » et dans la Montagne du tir.' }),
         h('p', { texte: 'Annuler un lancer : pendant que tu vises, ramène le doigt dans le cercle de lancer, puis lâche.' }),

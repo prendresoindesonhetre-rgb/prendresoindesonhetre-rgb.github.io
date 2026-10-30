@@ -52,15 +52,18 @@ function memoForme(o, faire) {
   return f;
 }
 
-// Force des pentes : la boule y prend nettement de la vitesse en descente et cale en montée (deux fois
-// la pente nominale ; le terrain entier en pente, un peu moins). La physique la plafonne selon le sol
-// (MP.PENTE_FROTTEMENT), pour qu'une boule puisse toujours s'arrêter, même sur le bitume.
-MP.FORCE_PENTE = 2;
+// Force des pentes : la boule y prend franchement de la vitesse en descente, cale en montée et part
+// du côté de la descente quand elle la traverse (six fois la pente nominale ; le terrain entier en
+// pente, bien moins). La physique la plafonne selon le sol (MP.PENTE_FROTTEMENT), pour qu'une boule
+// puisse toujours s'arrêter sur une pente douce, même sur le bitume.
+MP.FORCE_PENTE = 6;
+// Un dos d'âne freine la boule qui le passe : elle ne retrouve pas en redescendant ce qu'elle a perdu.
+MP.FREIN_DOS = 3;
 // Les pentes courtes des niveaux sont plus raides (RAIDEUR) et peuvent dépasser le frottement : une
 // boule ne s'y arrête pas (MP.solPlafonne, PENTE_RAIDE).
 MP.RAIDEUR = 2.2;
 MP.FORCE_PENTE_TERRAIN = 1.4;
-// attenue : les étapes de la Montagne, réglées une à une, gardent leur force de pente d'origine.
+// attenue : la Montagne garde l'inclinaison d'origine de son terrain en pente.
 MP.forcePente = function (o) { return (o.globale ? MP.FORCE_PENTE_TERRAIN : MP.FORCE_PENTE) * (o.attenue || 1); };
 // Petite pente locale (type « plan ») : un rectangle incliné posé n'importe où, dans n'importe quel
 // sens : centre (x, z), sens de la descente (dx, dz), longueur L dans ce sens, largeur W en travers,
@@ -81,6 +84,36 @@ MP.dosDane = function (x, z, tilt, L, W, f) {
   montee.paire = descente.paire = Math.round(x * 1000) + ',' + Math.round(z * 1000);
   return [montee, descente];
 };
+// Le relief d'une petite pente (ou d'un dos d'âne, b : son autre moitié) tel qu'il est dessiné :
+// la hauteur en tout point. Le dessin (peindrePlan) et la boule (Relief.sous) suivent la même forme :
+// la boule descend la pente, et tombe aussi des côtés, partout où on voit du relief.
+MP.formePlan = function (o, b) {
+  return memoForme(o, function () {
+    var dos = !!b, cx = dos ? (o.x + b.x) / 2 : o.x, cz = dos ? (o.z + b.z) / 2 : o.z, dx = dos ? b.dx : o.dx, dz = dos ? b.dz : o.dz;
+    // Une grande pente douce a des côtés plus doux.
+    var Wm = o.W / 2, h2 = dos ? o.L : o.L / 2, bord = o.raide || dos ? Math.max(0.06, Math.min(0.12, 0.15 * o.W)) : Math.min(0.35, 0.15 * o.W);
+    var H = dos ? 0.06 + 0.04 * Math.min(1, b.f / 1.1)
+      : (o.raide ? Math.max(0.08, Math.min(0.25, 0.26 * o.L)) : Math.max(0.1, Math.min(0.18, 0.08 * o.L)));
+    var P = dos ? 0 : 0.25 + 0.35 * o.L;
+    function loc(x, z) { var ex = x - cx, ez = z - cz; return [ex * dx + ez * dz, -ex * dz + ez * dx]; }
+    // 0 au creux, 1 au sommet et derrière (pour un dos d'âne : 1 sur la crête) ; pied et sommet adoucis.
+    function monte(u) {
+      var t = dos ? 1 - Math.abs(u) / h2 : (h2 - u) / o.L;
+      t = Math.max(0, Math.min(1, t));
+      return 0.5 * t + 0.5 * t * t * (3 - 2 * t);
+    }
+    // Les côtés : un bord net (on voit le relief) aux coins arrondis du côté du sommet.
+    function cote(u, v) {
+      var coin = dos ? 0 : Math.max(0, Math.min(1, (-h2 - u) / Math.max(0.01, P))) * Math.min(Wm, 0.35);
+      return lisse(Wm - coin * coin / Math.max(0.01, Wm), Wm - coin * coin / Math.max(0.01, Wm) - bord, Math.abs(v));
+    }
+    return { dos: dos, cx: cx, cz: cz, dx: dx, dz: dz, Wm: Wm, h2: h2, H: H, P: P, bord: bord, loc: loc, monte: monte, cote: cote,
+      hauteur: function (x, z) { var q = loc(x, z); return H * monte(q[0]) * cote(q[0], q[1]); },
+      // Le haut se fond dans le terrain derrière le sommet (pas de seconde pente).
+      masque: dos ? null : function (x, z) { return lisse(-h2 - P, -h2 - 0.3 * P, loc(x, z)[0]); } };
+  });
+};
+
 // Empreinte au sol d'une forme (ce qu'on en voit, ombre comprise) : un rectangle orienté
 // { x, z, ux, uz, a, b } (centre, axe, demi-longueur sur l'axe, demi-largeur en travers).
 MP.empreinte = function (o) {
@@ -261,6 +294,12 @@ MP.procheRacine = function (f, x, z) {
     t: (bi + bt) / (c.length - 1), nx: -tz / n, nz: tx / n };
 };
 
+// L'autre moitié d'un dos d'âne (même paire), ou rien.
+MP.Relief.prototype.moitie = function (o) {
+  for (var i = 0; i < this.zones.length; i++) { var p = this.zones[i]; if (p !== o && p.type === 'plan' && p.paire === o.paire) return p; }
+  return null;
+};
+
 // Ce qu'il y a sous une boule au sol : poussée (ax, az), freinage, trou.
 MP.Relief.prototype.sous = function (x, z) {
   var r = { ax: 0, az: 0, pax: 0, paz: 0, raide: false, frein: 1, trou: null, boue: false };
@@ -275,11 +314,15 @@ MP.Relief.prototype.sous = function (x, z) {
         }
         break;
       case 'plan':
+        // La boule descend le relief dessiné (MP.formePlan) : la pente, ses côtés, la crête d'un dos d'âne.
         u = MP.locPlan(o, x, z); v = u.v; u = u.u;
-        if (Math.abs(u) < o.L / 2 && Math.abs(v) < o.W / 2) {
-          k = lisse(o.L / 2, o.L / 2 - 0.05, Math.abs(u)) * lisse(o.W / 2, o.W * 0.3, Math.abs(v)) * o.f * MP.forcePente(o);
-          r.ax += o.dx * k; r.az += o.dz * k; r.pax += o.dx * k; r.paz += o.dz * k;
+        if (Math.abs(v) < o.W / 2 && (o.dos ? Math.abs(u) < o.L / 2 : u < o.L / 2 && u > -o.L / 2 - 0.25 - 0.35 * o.L)) {
+          f = MP.formePlan(o, o.dos ? this.moitie(o) : null);
+          k = o.f * MP.forcePente(o) * o.L / f.H * (f.masque ? f.masque(x, z) : 1);
+          var gx = (f.hauteur(x + e, z) - f.hauteur(x - e, z)) / (2 * e), gz = (f.hauteur(x, z + e) - f.hauteur(x, z - e)) / (2 * e);
+          r.ax -= gx * k; r.az -= gz * k; r.pax -= gx * k; r.paz -= gz * k;
           if (o.raide) r.raide = true;
+          if (o.dos) r.frein *= MP.FREIN_DOS;
         }
         break;
       case 'bosse':
@@ -336,6 +379,62 @@ MP.Relief.prototype.racines = function (c) {
       c.racine = cle;
     }
   }
+};
+
+// Les murets d'une pente : ses deux côtés sont de petits murs, hauts au sommet et nuls au pied. Une
+// boule qui arrive de côté tape dedans et repart en arrière ; là où le muret est plus bas qu'elle
+// (près du pied), elle peut monter si elle va assez vite. Du dessus de la pente, elle tombe des côtés.
+MP.REBOND_MURET = 0.3;
+MP.Relief.prototype.murets = function (c) {
+  for (var i = 0; i < this.zones.length; i++) {
+    var o = this.zones[i];
+    if (o.type !== 'plan') continue;
+    var b = o.dos ? this.moitie(o) : null;
+    if (b && this.zones.indexOf(b) < i) continue;   // un dos d'âne : ses deux moitiés ensemble, une fois
+    var F = MP.formePlan(o, b), q = F.loc(c.x, c.z), u = q[0], v = q[1];
+    if (Math.abs(u) > F.h2) continue;   // le long de la pente seulement : derrière le sommet, le haut se fond dans le terrain
+    var mur = F.Wm - F.bord / 2, d = Math.abs(v) - mur, cle = 'm' + i;
+    if (d < 0 || d > c.r + 0.05) { if (c.muret === cle && (d < 0 || d > c.r + 0.02)) c.muret = null; continue; }
+    var haut = F.H * F.monte(u);
+    if (haut < 0.004) continue;
+    // Distance (vue de dessus) à laquelle la boule touche le muret : contre sa face s'il est plus
+    // haut que son centre, sinon contre son arête.
+    var contact = haut >= c.r ? c.r : Math.sqrt(Math.max(0, c.r * c.r - Math.pow(c.r - haut, 2)));
+    if (d > contact || c.muret === cle) continue;
+    var sg = v >= 0 ? 1 : -1, nx = -F.dz * sg, nz = F.dx * sg, vn = c.vx * nx + c.vz * nz;
+    if (vn >= 0) continue;   // elle s'en éloigne
+    if (haut >= c.r * 0.9 || -vn < MP.SEUIL_RACINE * Math.min(1.25, Math.sqrt(haut / 0.03))) {
+      // Un vrai mur pour elle : elle rebondit un peu en arrière, et glisse le long en perdant de la vitesse.
+      var tx = c.vx - vn * nx, tz = c.vz - vn * nz;
+      c.vx = tx * 0.85 - vn * MP.REBOND_MURET * nx; c.vz = tz * 0.85 - vn * MP.REBOND_MURET * nz;
+      c.spin = 0;
+      c.x += nx * (contact - d); c.z += nz * (contact - d);
+    } else {
+      // Muret bas, boule rapide : elle monte dessus en perdant de la vitesse.
+      var garde = 1 - 0.45 * Math.min(1, haut / 0.03);
+      c.vx *= garde; c.vz *= garde;
+      c.muret = cle;
+    }
+  }
+};
+
+// Le chemin direct du cercle (0, 0,3) au point (x, z) bute-t-il dans un muret plus haut qu'une boule ?
+// (Une boule roulée tout droit ne pourrait pas y arriver.)
+MP.Relief.prototype.cheminBarre = function (x, z) {
+  var r = MP.MESURES.rayonBoule, L = Math.hypot(x, z - 0.3), n = Math.max(2, Math.ceil(L / 0.04));
+  for (var i = 0; i < this.zones.length; i++) {
+    var o = this.zones[i];
+    if (o.type !== 'plan') continue;
+    var b = o.dos ? this.moitie(o) : null;
+    if (b && this.zones.indexOf(b) < i) continue;
+    var F = MP.formePlan(o, b), mur = F.Wm - F.bord / 2, dehors = true;
+    for (var k = 0; k <= n; k++) {
+      var q = F.loc(x * k / n, 0.3 + (z - 0.3) * k / n), u = q[0], v = Math.abs(q[1]);
+      if (dehors && v <= mur && Math.abs(u) < F.h2 && F.H * F.monte(u) >= 0.9 * r) return true;
+      dehors = v > mur;
+    }
+  }
+  return false;
 };
 
 // Une boule qui tombe : dans un trou elle y reste, dans la boue elle s'enfonce.
